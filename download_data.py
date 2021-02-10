@@ -24,21 +24,21 @@ if not os.path.exists(OUTPUT_FOLDER):
 
 datasets = [
     # "ref_african_crops_kenya_01_labels",
-    "ref_african_crops_kenya_01_source",
-    "ref_african_crops_tanzania_01_labels",
-    "ref_african_crops_tanzania_01_source",
+    # "ref_african_crops_kenya_01_source",
+    # "ref_african_crops_tanzania_01_labels",
+    # "ref_african_crops_tanzania_01_source",
     "ref_african_crops_uganda_01_labels",
-    "ref_african_crops_uganda_01_source",
+    # "ref_african_crops_uganda_01_source",
     "ref_african_crops_kenya_02_labels",
-    "ref_african_crops_kenya_02_source",
+    # "ref_african_crops_kenya_02_source",
     "su_african_crops_south_sudan_labels",
-    "su_african_crops_south_sudan_source_planet",
-    "su_african_crops_south_sudan_source_s1",
-    "su_african_crops_south_sudan_source_s2",
+    # "su_african_crops_south_sudan_source_planet",
+    # "su_african_crops_south_sudan_source_s1",
+    # "su_african_crops_south_sudan_source_s2",
     "su_african_crops_ghana_labels",
-    "su_african_crops_ghana_source_planet",
-    "su_african_crops_ghana_source_s1",
-    "su_african_crops_ghana_source_s2"
+    # "su_african_crops_ghana_source_planet",
+    # "su_african_crops_ghana_source_s1",
+    # "su_african_crops_ghana_source_s2"
 ]
 
 s3 = boto3.client('s3')

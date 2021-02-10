@@ -14,20 +14,31 @@ logging.basicConfig(filename='createdataset.log')
 #
 # This first parameter will be used to select the percentage we can accept to our model,
 # the range of this variable is from 0.0 to 100.0
-percentage = 0.1
+percentage = 0.01
 PATH_FILES = "data/landcovernet"
 inputs_folder = "dataset/inputs"
 target_folder = "dataset/target"
+
+def create_tif(img,array,output,dtype = gdal.GDT_Float32):
+    im = gdal.Open(img)
+    driver = gdal.GetDriverByName("GTiff")
+    dst = driver.Create(output,im.RasterXSize,im.RasterYSize,len(array),dtype)
+    for i in range(len(array)):
+        b = dst.GetRasterBand(i+1)
+        b.WriteArray(array[i])
+    dst.SetProjection(im.GetProjection())
+    dst.SetGeoTransform(im.GetGeoTransform())
+    dst.FlushCache()
+
 
 def return_fn(path,ends):
     return os.path.join(path,[f for f in os.listdir(path) if f.endswith(ends)][0])
 
 def normalize(array):
     maximum = np.max(array)
-    array = array/maximum#10000#
+    array = array/maximum
     return np.array(array,dtype=np.float32)
 
-# datasets = []
 datasets = {}
 c = 0
 
@@ -43,7 +54,6 @@ for i in tqdm(os.listdir(PATH_FILES)):
     else:
         l = gdal.Open(y)
         label = l.GetRasterBand(1).ReadAsArray()
-        cv2.imwrite(os.path.join(target_folder,f'{i}.tif'),label)
         for date in dates:
             p = os.path.join(path,date)
             try:
@@ -56,21 +66,21 @@ for i in tqdm(os.listdir(PATH_FILES)):
             except RuntimeError as e:
                 logging.error(f'RuntimeError found: "{e}", some of the files have problems to be opened')
             else:
-                # merged = np.array([b1,b2,b3])
-                merged = cv2.merge((normalize(b1),normalize(b2),normalize(b3)))
+                array = [b3,b2,b1]
                 pct = np.sum(cl)/(np.shape(cl)[0]*np.shape(cl)[1])
                 if pct<=percentage:
-                    cv2.imwrite(os.path.join(inputs_folder,f'{i}_{datasets[i]}.tif'),merged)
+                    ar = cv2.merge(array)
+                    arr = 1+(np.all(ar[:,:]==np.array([0,0,0]),axis=2)*-1)
+                    label_cp = label*arr
+                    label_out = os.path.join(target_folder,f'{i}_{datasets[i]}.tif')
+                    create_tif(return_fn(p,"B02_10m.tif"),[label_cp],label_out,dtype = gdal.GDT_Byte)
+                    output = os.path.join(inputs_folder,f'{i}_{datasets[i]}.tif')
+                    create_tif(return_fn(p,"B02_10m.tif"),array,output,dtype = gdal.GDT_UInt16)
                     datasets[i]+=1
                     c+=1
-                    # datasets.append([merged,label])
 
 for i in datasets.keys():
-    print(f'{i} = {round((datasets[i]/c)*100,4)}')
+    if datasets[i]>0:
+        print(f'{i} = {round((datasets[i]/c)*100,4)}%, total = {datasets[i]}')
 print(f'Total amount of images: {c}')
-
-# np.random.shuffle(datasets)
-# np.save("dataset/training_data.npy", datasets)
-
-
 
