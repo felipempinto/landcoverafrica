@@ -1,11 +1,20 @@
 import torch
-from torch.utils import data
-from cv2 import cv2
+# from torch.utils import data
+from torch.utils.data import DataLoader,Dataset
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from osgeo import gdal
+from sklearn.model_selection import train_test_split
 
-class Dataset(data.Dataset):
+def get_file_names(path):
+    return [os.path.join(path,i) for i in os.listdir(path)]
+
+def normalize(array):
+    array = array/10000
+    return np.array(array,dtype=np.float32)
+
+class DataSet(Dataset):
     def __init__(self, inputs,targets):
         self.inputs = inputs
         self.targets = targets
@@ -19,29 +28,31 @@ class Dataset(data.Dataset):
         input_ID = self.inputs[index]
         target_ID = self.targets[index]
 
-        x = np.array(cv2.split(cv2.imread(input_ID)))
-        y = cv2.imread(target_ID, cv2.IMREAD_GRAYSCALE)
-        plt.imshow(cv2.imread(input_ID))
-        plt.show()
+        x = gdal.Open(input_ID).ReadAsArray()
+        x = normalize(x)
+        y = gdal.Open(target_ID).ReadAsArray()
+
 
         x = torch.from_numpy(x).type(self.inputs_dtype)
         y = torch.from_numpy(y).type(self.targets_dtype)
 
         return x,y
-        
-if __name__=="__main__":
-    inputs = ['dataset/inputs/ref_landcovernet_v1_labels_28QDE_09_0.tif', 
-            'dataset/inputs/ref_landcovernet_v1_labels_28QDE_09_1.tif']
-    targets = ['dataset/target/ref_landcovernet_v1_labels_28QDE_09.tif',
-            'dataset/target/ref_landcovernet_v1_labels_28QDE_09.tif']
+    
 
-    training_dataset = Dataset(inputs=inputs,targets=targets)
+BATCH_SIZE = 10
+X = get_file_names('dataset/inputs')
+y = get_file_names('dataset/target')
 
-    training_dataloader = data.DataLoader(dataset=training_dataset,
-                                        batch_size=2,
-                                        shuffle=True)
-    x, y = next(iter(training_dataloader))
+X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=42,test_size=0.25,shuffle=True)
 
-    print(f'x = shape: {x.shape}; type: {x.dtype}')
-    print(f'x = min: {x.min()}; max: {x.max()}')
-    print(f'y = shape: {y.shape}; class: {y.unique()}; type: {y.dtype}')
+dataset_train = DataSet(inputs = X_train, targets = y_train)
+dataset_valid = DataSet(inputs = X_test, targets = y_test)
+
+dataloader_training = DataLoader(dataset=dataset_train,batch_size=BATCH_SIZE,shuffle=True)
+dataloader_validation = DataLoader(dataset=dataset_valid,batch_size=BATCH_SIZE,shuffle=True)
+
+x, y = next(iter(dataloader_training))
+
+print(f'x = shape: {x.shape}; type: {x.dtype}')
+print(f'x = min: {x.min()}; max: {x.max()}')
+print(f'y = shape: {y.shape}; class: {y.unique()}; type: {y.dtype}')
