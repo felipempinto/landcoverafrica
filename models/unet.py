@@ -96,33 +96,34 @@ class unet(nn.Module):
         return output
 
 
+if __name__=="__main__":
 
-training_data = np.load('training_data_clouds_01.npy',allow_pickle=True)
-X,y = training_data[:,0].reshape(-1),training_data[:,1]
+    training_data = np.load('training_data_clouds_01.npy',allow_pickle=True)
+    X,y = training_data[:,0].reshape(-1),training_data[:,1]
 
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.25)
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.25)
 
-print(np.shape(X_train))
-print(np.shape(X_test))
+    print(np.shape(X_train))
+    print(np.shape(X_test))
 
 
-for count in range(10):
-    im = X_train[count]
-    shape = np.shape(im)
+    for count in range(10):
+        im = X_train[count]
+        shape = np.shape(im)
 
-    image = []
-    for i in range(shape[0]):
-        image.append(im[i]/np.max(im[i]))
+        image = []
+        for i in range(shape[0]):
+            image.append(im[i]/np.max(im[i]))
 
-    image = torch.Tensor(image).view(-1,shape[0],shape[1],shape[2])
-    model = unet(7)
-    im = model(image)
+        image = torch.Tensor(image).view(-1,shape[0],shape[1],shape[2])
+        model = unet(7)
+        im = model(image)
 
-    img = im.detach().numpy()[0][0]
-    shape = np.shape(im.detach().numpy())
+        img = im.detach().numpy()[0][0]
+        shape = np.shape(im.detach().numpy())
 
-    # for i in range(shape[1]):
-    imagem = im.detach().numpy()[0][0]
-    plt.imshow(img)
-    plt.show()
+        # for i in range(shape[1]):
+        imagem = im.detach().numpy()[0][0]
+        plt.imshow(img)
+        plt.show()
 
