@@ -14,10 +14,16 @@ logging.basicConfig(filename='createdataset.log')
 #
 # This first parameter will be used to select the percentage we can accept to our model,
 # the range of this variable is from 0.0 to 100.0
-percentage = 0.01
+percentage = 0.0
 PATH_FILES = "data/landcovernet"
 inputs_folder = "dataset/inputs"
 target_folder = "dataset/target"
+
+if not os.path.exists(inputs_folder):
+    os.mkdir(inputs_folder)
+
+if not os.path.exists(target_folder):
+    os.mkdir(target_folder)
 
 def create_tif(img,array,output,dtype = gdal.GDT_Float32):
     im = gdal.Open(img)
@@ -38,6 +44,21 @@ def normalize(array):
     maximum = np.max(array)
     array = array/maximum
     return np.array(array,dtype=np.float32)
+
+def create_level2(array):
+    ar = array.copy()
+    ar[np.where(array==3)]=2
+    ar[np.where(array==4)]=3
+    ar[np.where(array==5)]=4
+    ar[np.where(array==6)]=5
+    ar[np.where(array==7)]=5
+    return ar
+
+def create_level1(array):
+    ar = array.copy()
+    ar[np.where((array<=4) & (array>0))]=1
+    ar[np.where(array>4)]=2
+    return ar
 
 datasets = {}
 c = 0
@@ -60,6 +81,12 @@ for i in tqdm(os.listdir(PATH_FILES)):
                 b1 = gdal.Open(return_fn(p,"B02_10m.tif")).ReadAsArray()
                 b2 = gdal.Open(return_fn(p,"B03_10m.tif")).ReadAsArray()
                 b3 = gdal.Open(return_fn(p,"B04_10m.tif")).ReadAsArray()
+                # b4 = gdal.Open(return_fn(p,"B05_10m.tif")).ReadAsArray()
+                # b5 = gdal.Open(return_fn(p,"B06_10m.tif")).ReadAsArray()
+                # b6 = gdal.Open(return_fn(p,"B07_10m.tif")).ReadAsArray()
+                # b7 = gdal.Open(return_fn(p,"B08_10m.tif")).ReadAsArray()
+                # b8 = gdal.Open(return_fn(p,"B11_10m.tif")).ReadAsArray()
+                # b9 = gdal.Open(return_fn(p,"B12_10m.tif")).ReadAsArray()
                 cl = gdal.Open(return_fn(p,"CLD_10m.tif")).ReadAsArray()
             except IndexError as e:
                 logging.error(f'IndexError found: "{e}", bands not found in the {p} folder')
@@ -72,6 +99,15 @@ for i in tqdm(os.listdir(PATH_FILES)):
                     ar = cv2.merge(array)
                     arr = 1+(np.all(ar[:,:]==np.array([0,0,0]),axis=2)*-1)
                     label_cp = label*arr
+                    # label_cp = create_level1(label_cp)
+                    # f, axarr = plt.subplots(1,2)
+                    # axarr[0].set_title("Original")
+                    # axarr[1].set_title("Label")
+                    # axarr[0].imshow(cv2.merge([normalize(b3),normalize(b2),normalize(b1)]))
+                    # axarr[1].imshow(label_cp)
+                    # plt.show()
+                    # ask = input ("Use this image? R(Y to yes, any other to no)= ")
+                    # if ask=="Y" or ask=="y":
                     label_out = os.path.join(target_folder,f'{i}_{datasets[i]}.tif')
                     create_tif(return_fn(p,"B02_10m.tif"),[label_cp],label_out,dtype = gdal.GDT_Byte)
                     output = os.path.join(inputs_folder,f'{i}_{datasets[i]}.tif')

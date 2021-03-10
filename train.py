@@ -15,7 +15,7 @@ else:
     dev = torch.device("cpu")
     print("Running on the CPU")
 
-def pixel_acc(pred, label,img):
+def pixel_acc(pred, label):
     _, preds = torch.max(pred, dim=1)
     # for i,j,im in zip(preds,label,img):
     #     f, axarr = plt.subplots(1,3)
@@ -91,7 +91,7 @@ class Trainer:
             train_X,train_y = x.to(self.device),y.to(self.device)
             out = self.model(train_X)
             loss = self.criterion(out,train_y)
-            acc = pixel_acc(out,train_y,train_X)#pred, label)
+            acc = pixel_acc(out,train_y)
             loss_value = loss.item()
             train_losses.append(loss_value)
             train_acc.append(acc)
@@ -133,27 +133,30 @@ class Trainer:
 if __name__=="__main__":
 
 
-    BATCH_SIZE = 10
+    BATCH_SIZE = 1
     X = get_file_names('dataset/inputs')
     y = get_file_names('dataset/target')
 
     X_train, X_test, y_train, y_test = train_test_split(X,y,random_state=42,test_size=0.25,shuffle=True)
 
-    dataset_train = DataSet(inputs = X_train, targets = y_train)
-    dataset_valid = DataSet(inputs = X_test, targets = y_test)
+    dataset_train = DataSet(inputs = X_train, targets = y_train)#,use_cache=True)
+    dataset_valid = DataSet(inputs = X_test, targets = y_test)#,use_cache=True)
 
-    dataloader_training = DataLoader(dataset=dataset_train,batch_size=BATCH_SIZE,shuffle=True)
-    dataloader_validation = DataLoader(dataset=dataset_valid,batch_size=BATCH_SIZE,shuffle=True)
+    dataloader_training = DataLoader(dataset=dataset_train,batch_size=BATCH_SIZE,shuffle=True,num_workers=2*6)
+    dataloader_validation = DataLoader(dataset=dataset_valid,batch_size=BATCH_SIZE,shuffle=True,num_workers=2*6)
 
+    n_of_bands = 3
     n_of_classes = 8
-    model = unet(dimensions=n_of_classes).to(dev)
-    # model = UNet(in_channels = 3,
+    # model = unet(dimensions=n_of_classes).to(dev)
+    # model = torch.nn.DataParallel(UNet(in_channels = n_of_bands,
     #              out_channels = n_of_classes
-    #              ).to(dev)
+    #              )).to(dev)
+    model = UNet(in_channels = n_of_bands,
+                 out_channels = n_of_classes
+                 ).to(dev)
     
     criterion = torch.nn.CrossEntropyLoss(weight=None, reduction='mean', ignore_index=-1).cuda()
-
-    optimizer = torch.optim.Adam(model.parameters(),lr = 0.005)
+    optimizer = torch.optim.Adam(model.parameters(),lr = 0.00001)
 
     trainer = Trainer(model=model,
                   criterion=criterion,

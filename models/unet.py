@@ -6,9 +6,9 @@ from cv2 import cv2
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from mit_semseg.config import cfg
-from mit_semseg.dataset import TestDataset
-from mit_semseg.models import ModelBuilder, SegmentationModule
+# from mit_semseg.config import cfg
+# from mit_semseg.dataset import TestDataset
+# from mit_semseg.models import ModelBuilder, SegmentationModule
 
 
 class double_conv(nn.Module):

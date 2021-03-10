@@ -1,0 +1,12 @@
+{
+  "country": "nigeria",
+  "bounding_box": [5.7989088308245309,11.4225494852148532,6.0394768890369548,11.5692440008028612],
+  "zoom": 14,
+  "classes": [
+    { "name": "Roads", "filter": ["has", "highway"] },
+    { "name": "landuse", "filter": ["has", "landuse"] }
+  ],
+  "imagery": "/home/felipe/hdd/Documentos/Empresa/Upwork/Harald/Project1/Datasets/createS2",
+  "background_ratio": 1,
+  "ml_type": "segmentation"
+}
