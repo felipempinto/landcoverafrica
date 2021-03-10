@@ -17,15 +17,16 @@ else:
 
 def pixel_acc(pred, label):
     _, preds = torch.max(pred, dim=1)
-    # for i,j,im in zip(preds,label,img):
-    #     f, axarr = plt.subplots(1,3)
-    #     axarr[0].set_title("Original")
-    #     axarr[1].set_title("Predicted")
-    #     axarr[2].set_title("Label")
-    #     axarr[0].imshow(cv2.merge(im.cpu().detach().numpy()))
-    #     axarr[1].imshow(i.cpu().detach().numpy())
-    #     axarr[2].imshow(j.cpu().detach().numpy())
-    #     plt.show()
+    
+    for i,j,im in zip(preds,label,img):
+        f, axarr = plt.subplots(1,3)
+        axarr[0].set_title("Original")
+        axarr[1].set_title("Predicted")
+        axarr[2].set_title("Label")
+        axarr[0].imshow(cv2.merge(im.cpu().detach().numpy()))
+        axarr[1].imshow(i.cpu().detach().numpy())
+        axarr[2].imshow(j.cpu().detach().numpy())
+        plt.show()
 
     valid = (label >= 0).long()
     acc_sum = torch.sum(valid * (preds == label).long())
@@ -156,7 +157,7 @@ if __name__=="__main__":
                  ).to(dev)
     
     criterion = torch.nn.CrossEntropyLoss(weight=None, reduction='mean', ignore_index=-1).cuda()
-    optimizer = torch.optim.Adam(model.parameters(),lr = 0.00001)
+    optimizer = torch.optim.Adam(model.parameters(),lr = 0.0001)
 
     trainer = Trainer(model=model,
                   criterion=criterion,
