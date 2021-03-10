@@ -76,46 +76,46 @@ def clip(img,wkt,output):
     with rasterio.open(output, "w", **out_meta) as output:
         output.write(out_image)
 
-# for i in tqdm(os.listdir(path)):
-#     if i.endswith('label.tif'):
-#         label = os.path.join(path,i)
-#         inp = os.path.join(path,i[0:-10]+".tif")
+for i in tqdm(os.listdir(path)):
+    if i.endswith('label.tif'):
+        label = os.path.join(path,i)
+        inp = os.path.join(path,i[0:-10]+".tif")
 
-#         img = gdal.Open(label)
-#         vmin_x, xres, _, vmax_y, _, yres  = img.GetGeoTransform()
-#         vmax_x = vmin_x + (img.RasterXSize * xres)
-#         vmin_y = vmax_y + (img.RasterYSize * yres)
-#         boundsx = create_bounds(vmin_x,vmax_x,length,xres)
-#         boundsy = create_bounds(vmin_y,vmax_y,length,xres)
+        img = gdal.Open(label)
+        vmin_x, xres, _, vmax_y, _, yres  = img.GetGeoTransform()
+        vmax_x = vmin_x + (img.RasterXSize * xres)
+        vmin_y = vmax_y + (img.RasterYSize * yres)
+        boundsx = create_bounds(vmin_x,vmax_x,length,xres)
+        boundsy = create_bounds(vmin_y,vmax_y,length,xres)
 
-#         geo = []
-#         for m in boundsx:
-#             for j in boundsy:
-#                 xmax,xmin = m
-#                 ymax,ymin = j
-#                 p = Polygon([[xmin,ymax], 
-#                             [xmax,ymax], 
-#                             [xmax,ymin], 
-#                             [xmin,ymin]])
-#                 geo.append(p)
+        geo = []
+        for m in boundsx:
+            for j in boundsy:
+                xmax,xmin = m
+                ymax,ymin = j
+                p = Polygon([[xmin,ymax], 
+                            [xmax,ymax], 
+                            [xmax,ymin], 
+                            [xmin,ymin]])
+                geo.append(p)
 
-#         project = pyproj.Transformer.from_proj(
-#                     pyproj.Proj(img.GetProjection()),
-#                     pyproj.Proj(gdal.Open(inp).GetProjection()),
-#                     always_xy=True)
+        project = pyproj.Transformer.from_proj(
+                    pyproj.Proj(img.GetProjection()),
+                    pyproj.Proj(gdal.Open(inp).GetProjection()),
+                    always_xy=True)
             
-#         geo_inp = []
-#         for polygon in geo:
-#             geo_inp.append(transform(project.transform, polygon))
+        geo_inp = []
+        for polygon in geo:
+            geo_inp.append(transform(project.transform, polygon))
         
-#         for wkt in range(len(geo)):
-#             n = wkt+1
-#             name = os.path.splitext(i)[0]+f'_{n}.tif'
-#             output_label = os.path.join(output,'target2',name)
-#             output_input = os.path.join(output,'inputs',name)
-#             clip(label,geo[wkt],output_label)
-#             if os.path.exists(output_label):
-#                 clip(inp,geo_inp[wkt],output_input)
+        for wkt in range(len(geo)):
+            n = wkt+1
+            name = os.path.splitext(i)[0]+f'_{n}.tif'
+            output_label = os.path.join(output,'target2',name)
+            output_input = os.path.join(output,'inputs',name)
+            clip(label,geo[wkt],output_label)
+            if os.path.exists(output_label):
+                clip(inp,geo_inp[wkt],output_input)
                 
 
 outpath = os.path.join(output,'target')
